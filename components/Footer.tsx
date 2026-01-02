@@ -126,11 +126,13 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50 animate-pulse"></div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16 max-w-4xl mx-auto">
+        
+        {/* Main Content: Systematic Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16 border-b border-white/5 pb-12">
           
-          {/* Brand Column */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-2 group cursor-pointer">
+          {/* Brand Column (Left - Dominant) */}
+          <div className="space-y-6 lg:col-span-9">
+            <div className="flex items-center gap-2 group cursor-pointer w-fit">
               <div className="bg-gradient-to-br from-indigo-600 to-cyan-600 p-2.5 rounded-xl group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-indigo-900/20 btn-spring">
                 <Terminal className="text-white w-6 h-6" />
               </div>
@@ -141,7 +143,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 <p className="text-xs text-gray-500 font-mono">v2.5.0-beta</p>
               </div>
             </div>
-            <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
+            <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
               Master your technical interview with the power of generative AI. 
               Personalized questions, real-time feedback, and success.
             </p>
@@ -151,8 +153,8 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* Company Links */}
-          <div>
+          {/* Company Links (Right - Aligned) */}
+          <div className="lg:col-span-3">
             <h4 className="text-white font-bold mb-6 flex items-center gap-2">
               <span className="w-1 h-4 bg-purple-500 rounded-full"></span> Company
             </h4>
@@ -180,14 +182,12 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
         </div>
 
-        {/* Footer Bottom */}
-        <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-end items-center gap-4">
-          <div className="flex items-center gap-6">
-             <div className="flex items-center gap-1 text-sm text-gray-500">
-               Made with <Heart size={14} className="text-red-500 animate-heartbeat fill-red-500" /> by 
-               <span className="text-white font-medium hover:text-cyan-400 cursor-pointer transition-colors link-underline">Divyansh Khandal</span>
-             </div>
-          </div>
+        {/* Footer Bottom (Centered) */}
+        <div className="flex justify-center items-center">
+           <div className="flex items-center gap-1 text-sm text-gray-500">
+             Made with <Heart size={14} className="text-red-500 animate-heartbeat fill-red-500" /> by 
+             <span className="text-white font-medium hover:text-cyan-400 cursor-pointer transition-colors link-underline">Divyansh Khandal</span>
+           </div>
         </div>
       </div>
 
