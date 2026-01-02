@@ -96,9 +96,9 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
               <div className="flex items-center gap-4">
                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 p-[2px]">
                     <img 
-                       src="https://api.dicebear.com/7.x/avataaars/svg?seed=Divyansh" 
+                       src="https://github.com/divyansh999-code.png" 
                        alt="Divyansh Khandal" 
-                       className="w-full h-full rounded-full bg-black"
+                       className="w-full h-full rounded-full bg-black object-cover"
                     />
                  </div>
                  <div>

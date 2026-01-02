@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Terminal, Github, Twitter, Linkedin, Heart, 
+  Terminal, Github, Linkedin, Heart, 
   ArrowUp, Mail, ArrowRight, Shield, Globe, Lock, Sparkles
 } from 'lucide-react';
 import Button from './ui/Button'; 
@@ -68,6 +68,8 @@ const SocialIcon = ({ Icon, href }: { Icon: any, href: string }) => {
   return (
     <a 
       href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all duration-300 group relative overflow-hidden btn-spring"
     >
       <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -157,9 +159,8 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               Personalized questions, real-time feedback, and success.
             </p>
             <div className="flex gap-4">
-              <SocialIcon Icon={Github} href="#" />
-              <SocialIcon Icon={Twitter} href="#" />
-              <SocialIcon Icon={Linkedin} href="#" />
+              <SocialIcon Icon={Github} href="https://github.com/divyansh999-code" />
+              <SocialIcon Icon={Linkedin} href="https://www.linkedin.com/in/divyansh-khandal-5b8b8b32b/" />
             </div>
           </div>
 
@@ -175,8 +176,6 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   Pricing <span className="ml-2 text-[10px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30">Free</span>
                 </MagneticLink>
               </li>
-              <li><MagneticLink href="#" Icon={ArrowRight}>Live Demo</MagneticLink></li>
-              <li><MagneticLink href="#" Icon={ArrowRight}>Success Stories</MagneticLink></li>
             </ul>
           </div>
 
