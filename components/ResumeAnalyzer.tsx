@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Sparkles, Cpu, Activity, Scan, Fingerprint, Lock, Upload, FileUp, X, Terminal, Zap
+  Sparkles, Cpu, Activity, Scan, Fingerprint, Lock, Upload, FileUp, X, Terminal, Zap, AlertTriangle
 } from 'lucide-react';
 import Button from './ui/Button';
 import InteractiveRobot from './InteractiveCube';
 import { GradientText } from './ui/Typography';
+import * as pdfjsModule from 'pdfjs-dist';
 
 interface ResumeAnalyzerProps {
   onSubmit: (text: string) => void;
@@ -28,6 +29,7 @@ const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onSubmit, isLoading }) 
   const [isScanning, setIsScanning] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [parseError, setParseError] = useState<string | null>(null);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,28 +72,99 @@ const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onSubmit, isLoading }) 
     setIsDragging(false);
   };
 
-  const readFileContent = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      setText(content);
-      setFileName(file.name);
-      setIsScanning(false);
-    };
-    
-    // Simulate scan effect
+  const extractTextFromPdf = async (file: File): Promise<string> => {
+    try {
+      // Defensive resolution of PDF.js module parts
+      // esm.sh might provide named exports OR a default object depending on version/bundling
+      const mod = pdfjsModule as any;
+      
+      // 1. Resolve the Library Object
+      const pdfjs = mod.default || mod;
+      
+      // 2. Resolve GlobalWorkerOptions
+      const GlobalWorkerOptions = pdfjs.GlobalWorkerOptions || mod.GlobalWorkerOptions;
+      
+      // 3. Resolve getDocument
+      const getDocument = pdfjs.getDocument || mod.getDocument;
+
+      if (!getDocument) {
+        throw new Error("PDF Parser could not be initialized. Please copy-paste your resume text.");
+      }
+
+      // 4. Configure Worker (Only if not already set)
+      // Use cdnjs for the worker script to ensure compatibility with standard browser worker loading (importScripts)
+      // esm.sh's .mjs worker often causes issues with fake worker setup or cross-origin checks
+      if (GlobalWorkerOptions && !GlobalWorkerOptions.workerSrc) {
+        GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      
+      // Load the document
+      const loadingTask = getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+      
+      let fullText = '';
+      
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        fullText += pageText + '\n';
+      }
+      
+      if (!fullText.trim()) {
+        throw new Error("No text found in PDF. It might be an image scan.");
+      }
+      
+      return fullText;
+    } catch (err: any) {
+      console.error("PDF Parse Error:", err);
+      // Provide a user-friendly error message
+      if (err.name === 'PasswordException') {
+        throw new Error("PDF is password protected. Please remove the password or copy-paste text.");
+      } else if (err.message && err.message.includes("PDF Parser")) {
+        throw err;
+      } else {
+        throw new Error("Failed to parse PDF. Please copy-paste the text content.");
+      }
+    }
+  };
+
+  const readFileContent = async (file: File) => {
+    setParseError(null);
     setIsScanning(true);
-    
-    // Simple text file handling
-    if (file.type === 'text/plain' || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
-      setTimeout(() => reader.readAsText(file), 800);
-    } else {
-      // For PDF/DOCX in this demo, we simulate extraction or show a message
-      setTimeout(() => {
-        setText(`[IMPORTED FILE: ${file.name}]\n\n(Note: In this demo environment, robust PDF/DOCX parsing requires a backend service. Please copy-paste the text content for the best analysis results.)\n\n...Simulated content extraction...`);
-        setFileName(file.name);
-        setIsScanning(false);
-      }, 1500);
+    setFileName(file.name);
+
+    try {
+      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+        // PDF Handling
+        try {
+          const content = await extractTextFromPdf(file);
+          setText(content);
+        } catch (err: any) {
+          console.error(err);
+          setParseError(err.message || "Error parsing PDF");
+          setText(""); // Clear text on error
+        }
+      } else if (file.type === 'text/plain' || file.name.endsWith('.md') || file.name.endsWith('.txt')) {
+        // Text/MD Handling
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const content = e.target?.result as string;
+          setText(content);
+        };
+        reader.readAsText(file);
+      } else {
+        // Fallback for DOCX/Other (Simulation)
+        setTimeout(() => {
+          setText(`[IMPORTED FILE: ${file.name}]\n\n(Note: Direct parsing for .docx is not fully supported in this browser-only demo. Please copy-paste the text content for the best analysis results.)\n\n...Simulated content extraction...`);
+        }, 1000);
+      }
+    } catch (err) {
+      setParseError("Error reading file.");
+    } finally {
+      setTimeout(() => setIsScanning(false), 800);
     }
   };
 
@@ -117,6 +190,7 @@ const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onSubmit, isLoading }) 
   const clearFile = () => {
     setText('');
     setFileName(null);
+    setParseError(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -137,7 +211,7 @@ const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onSubmit, isLoading }) 
           Analyze <GradientText>Candidate Profile</GradientText>
         </h2>
         <p className="text-gray-400 max-w-xl mx-auto">
-          Upload a resume or paste text below. Our AI scans for technical keywords, experience patterns, and knowledge gaps in real-time.
+          Upload a resume (PDF/TXT) or paste text below. Our AI scans for technical keywords, experience patterns, and knowledge gaps in real-time.
         </p>
       </div>
 
@@ -212,7 +286,7 @@ const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onSubmit, isLoading }) 
             <div 
               className={`
                 relative flex-grow rounded-2xl bg-[#0d1117] border transition-all duration-300 overflow-hidden flex flex-col
-                ${isFocused || isDragging ? 'border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.15)]' : 'border-white/10'}
+                ${isFocused || isDragging ? 'border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.15)]' : parseError ? 'border-red-500/50' : 'border-white/10'}
               `}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -279,7 +353,7 @@ const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onSubmit, isLoading }) 
                     onBlur={() => setIsFocused(false)}
                     disabled={isProcessing}
                     className="w-full h-full bg-transparent text-gray-300 font-mono text-sm p-4 outline-none resize-none leading-6 custom-scrollbar placeholder-gray-700 relative z-10"
-                    placeholder="// Paste candidate resume text here...&#10;// OR Drag & Drop a file to import automatically.&#10;//&#10;// Example:&#10;// Senior Frontend Engineer with 5 years experience in React, TypeScript..."
+                    placeholder="// Paste candidate resume text here...&#10;// OR Drag & Drop a PDF/TXT file to import automatically.&#10;//&#10;// Example:&#10;// Senior Frontend Engineer with 5 years experience in React, TypeScript..."
                   />
 
                   {/* Drag Overlay */}
@@ -301,6 +375,17 @@ const ResumeAnalyzer: React.FC<ResumeAnalyzerProps> = ({ onSubmit, isLoading }) 
                             READING DATA STREAM...
                           </div>
                        </div>
+                    </div>
+                  )}
+
+                  {/* Parse Error Overlay */}
+                  {parseError && (
+                    <div className="absolute inset-x-0 bottom-4 z-30 flex justify-center animate-slide-up-fade">
+                        <div className="bg-red-950/90 border border-red-500/50 text-red-200 px-4 py-2 rounded-lg flex items-center gap-3 shadow-xl backdrop-blur-md">
+                            <AlertTriangle size={18} className="text-red-500" />
+                            <span className="text-sm font-medium">{parseError}</span>
+                            <button onClick={() => setParseError(null)} className="ml-2 hover:text-white"><X size={14} /></button>
+                        </div>
                     </div>
                   )}
                </div>

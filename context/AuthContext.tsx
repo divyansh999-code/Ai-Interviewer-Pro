@@ -45,8 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        console.warn("Supabase login failed, checking local storage fallback:", error.message);
-        // Fallback to Local Storage for demo resilience
+        // Fallback to Local Storage for resilience (if needed for existing users)
         const storedUsers = JSON.parse(localStorage.getItem('ai_interviewer_users_db') || '[]');
         const localUser = storedUsers.find((u: any) => u.email === email && u.password === password);
         
@@ -61,15 +60,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
            localStorage.setItem('ai_interviewer_user', JSON.stringify(appUser));
            return;
         }
-        
-        if (error.code === 'PGRST116') {
-           throw new Error("User not found");
+
+        // Specific Error Handling for User Not Found
+        if (error.code === 'PGRST116') { // PGRST116 is "The result contains 0 rows"
+           throw new Error("First create account");
         }
+        
+        console.warn("Supabase login warning:", error.message);
         throw new Error("Connection error: " + error.message);
       }
 
       if (!data) {
-        throw new Error("User not found");
+        throw new Error("First create account");
       }
 
       // Simple password check (Note: use hashing/Supabase Auth in production)
@@ -87,7 +89,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(appUser);
       localStorage.setItem('ai_interviewer_user', JSON.stringify(appUser));
     } catch (error: any) {
-      console.error("Login error:", error);
+      // Only log unexpected errors
+      if (error.message !== "First create account" && error.message !== "Invalid credentials") {
+          console.error("Login error:", error);
+      }
       throw error;
     } finally {
       setIsLoading(false);

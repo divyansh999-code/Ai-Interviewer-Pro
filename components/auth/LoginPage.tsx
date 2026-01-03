@@ -1,10 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Lock, ArrowRight, Github, AlertCircle, ScanEye, CheckCircle2 } from 'lucide-react';
+import { Lock, ArrowRight, AlertCircle, ScanEye, CheckCircle2 } from 'lucide-react';
 import Button from '../ui/Button';
-import Input from '../ui/Input';
 import { useAuth } from '../../context/AuthContext';
-import { GradientText } from '../ui/Typography';
 
 interface LoginPageProps {
   onNavigate: (view: 'signup' | 'landing') => void;
@@ -214,10 +212,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
     try {
       await login(email, password);
       setStatus('success');
-    } catch (err) {
+    } catch (err: any) {
       setTimeout(() => {
         setStatus('error');
-        setErrorMsg("Access Denied: Credentials verification failed.");
+        setErrorMsg(err.message || "Access Denied: Verification failed.");
       }, 1500);
     }
   };
@@ -332,19 +330,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
               </Button>
             </div>
           </form>
-
-          {/* Social Auth Divider */}
-          <div className="mt-8 relative z-20">
-            <div className="relative flex justify-center text-[10px] text-gray-600 uppercase font-mono tracking-widest mb-6">
-               <span className="bg-[#0e121e] px-2 relative z-10 rounded">Or Connect Via</span>
-               <div className="absolute top-1/2 left-0 w-full h-px bg-white/5 -z-0"></div>
-            </div>
-            
-            <button className="w-full flex items-center justify-center gap-3 p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all text-sm text-gray-300 group btn-spring">
-              <Github size={18} className="text-gray-500 group-hover:text-white transition-colors" />
-              <span>GitHub Protocol</span>
-            </button>
-          </div>
 
         </div>
 
