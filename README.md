@@ -11,6 +11,9 @@ Demo -
 <img width="1769" height="637" alt="Image" src="https://github.com/user-attachments/assets/0079de15-7599-45c4-8dfb-808fbfe906d1" />
 <img width="1883" height="844" alt="Image" src="https://github.com/user-attachments/assets/b0fee889-e84b-4e3b-ac38-afaafc57a334" />
 
+Demo video - 
+https://github.com/user-attachments/assets/d95a9a52-5c3d-4c79-9538-d073768ba98f
+
 Built by Divyansh Khandal - Dec 2025 - Jan 2026
 
 </div>
